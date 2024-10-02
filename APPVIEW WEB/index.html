@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APPVIEW - Almacenamiento de Páginas Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+      function initGoogleApi() {
+        gapi.load('client:auth2', () => {
+          gapi.client.init({
+            apiKey: 'TU_API_KEY',
+            clientId: 'TU_ID_DE_CLIENTE_DE_GOOGLE.apps.googleusercontent.com',
+            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+            scope: 'https://www.googleapis.com/auth/drive.file'
+          }).then(() => {
+            gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+            updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+          });
+        });
+      }
+    </script>
+    <script src="https://apis.google.com/js/platform.js?onload=initGoogleApi" async defer></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="cover" id="cover">
+        <div class="digital-circuit"></div>
+        <h1 class="title-animation">APP<span class="text-green-400">VIEW</span></h1>
+        <p class="mb-8">Organiza tu universo digital con estilo futurista</p>
+        <button onclick="hideCover()" class="hover:bg-green-600 transition-all duration-300 transform hover:scale-105">Explorar el Futuro</button>
+    </div>
+
+    <div class="mt-8 text-center">
+        <div id="googleSignInButton" class="g-signin2" data-onsuccess="onSignIn"></div>
+        <button id="signOutButton" style="display:none;" onclick="signOut()">Desconectar</button>
+    </div>
+
+    <div class="container mx-auto px-4 py-8" id="mainContent" style="display: none;">
+        <h1 class="text-6xl font-bold mb-4 text-center title-animation">APP<span class="text-green-400">VIEW</span></h1>
+        <p class="subtitle text-xl text-gray-400 mb-8 text-center">Tu portal a un universo de información organizada</p>
+        <div class="input-container flex space-x-2 mb-8">
+            <input type="text" id="urlInput" placeholder="Ingresa la URL del portal" class="flex-grow p-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" />
+            <input type="text" id="nameInput" placeholder="Nombre del nodo" class="flex-grow p-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" />
+            <select id="categorySelect" class="p-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                <option value="diseño">Diseño</option>
+                <option value="ia">IA</option>
+                <option value="business">Business</option>
+                <option value="tiendas">Tiendas</option>
+                <option value="school">School</option>
+                <option value="hacker">Hacker</option>
+                <option value="personal">Personal</option>
+            </select>
+            <button id="addButton" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300 transform hover:scale-105">Agregar Nodo</button>
+        </div>
+        <input type="text" id="searchInput" placeholder="Buscar en la matriz..." class="w-full p-2 mb-4 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" />
+        <div id="categoryContainer" class="category-container mb-8"></div>
+        <div id="cardContainer" class="gallery grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <div id="groupContainer" class="mt-8"></div>
+    </div>
+
+    <div id="editModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="modal-content bg-gray-800 bg-opacity-90 p-8 rounded-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Editar Nodo</h2>
+            <input type="text" id="editUrlInput" placeholder="URL del portal" class="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" />
+            <input type="text" id="editNameInput" placeholder="Nombre del nodo" class="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" />
+            <textarea id="editDescriptionInput" placeholder="Descripción del nodo" class="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" rows="3"></textarea>
+            <input type="file" id="logoUpload" accept="image/*" class="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded focus:ring-2 focus:ring-green-400 focus:border-transparent" />
+            <button id="saveEditButton" class="w-full bg-green-500 bg-opacity-60 text-white p-2 rounded hover:bg-green-600 hover:bg-opacity-80 transition duration-300 mb-2 transform hover:scale-105">Actualizar Nodo</button>
+            <button id="closeModalButton" class="w-full bg-gray-700 text-gray-300 p-2 rounded hover:bg-gray-600 transition duration-300 transform hover:scale-105">Cerrar</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyCQEh__V2243rAFIS7J2bPA7Dn_Cbs6ICQ",
+    authDomain: "app-view-454a6.firebaseapp.com",
+    projectId: "app-view-454a6",
+    storageBucket: "app-view-454a6.appspot.com",
+    messagingSenderId: "763487279257",
+    appId: "1:763487279257:web:d36826baaf7beaa6e58008",
+    measurementId: "G-V6G6CLB7G1"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+</html>
